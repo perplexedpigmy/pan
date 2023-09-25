@@ -1,4 +1,11 @@
 use crate::common::Gram;
+use crate::ingredient::flour::Flour;
+use crate::ingredient::water::Water;
+
+
+use std::ops::Add;
+use std::ops::Mul;
+use std::ops::Div;
 
 #[derive(Debug)]
 /// A sourdough starter
@@ -46,17 +53,17 @@ impl Starter {
     /// ```
     /// assert_eq!(1, 1)
     /// ````
-    pub fn create(total_weight: f32, hydration: f32, percent_starter: f32) -> Starter {
+    pub fn create(total_weight: Gram, hydration: f32, percent_starter: f32) -> Starter {
         let starter_weight = total_weight * percent_starter;
-        let flour_ratio = 1.0 / hydration; // The four ratio for each 1 unit of water
+        let flour_ratio = 1.0 / hydration; // The flour ratio for each 1 unit of water
         let portion = starter_weight / ( flour_ratio + 1.0);
 
-        let flour_in_gr = portion * flour_ratio;
-        let water_in_gr = portion;
-        
+        let flour = portion * flour_ratio;
+        let water = portion;
+
         Starter {
-            flour: Gram(flour_in_gr),
-            water: Gram(water_in_gr),
+            flour,
+            water,
         }
     }
 
@@ -78,13 +85,87 @@ impl Starter {
 
 }
 
+impl Add<Water> for Starter {
+    type Output = Self;
+    fn add(self, other: Water) -> Self {
+        Starter {
+            water: self.water + other.weight,
+            flour: self.flour,
+        }
+    }
+}
+
+impl Add<Flour> for Starter {
+    type Output = Self;
+    fn add(self, other: Flour) -> Self {
+        Starter {
+            water: self.water,
+            flour: self.flour + other.weight,
+        }
+    }
+}
+
+impl Mul<i32> for Starter {
+    type Output = Self;
+    fn mul(self, other: i32) -> Self {
+        self * other as f32
+    }
+}
+
+impl Mul<f32> for Starter {
+    type Output = Self;
+    fn mul(self, other: f32) -> Self {
+        Starter {
+            water: self.water * other,
+            flour: self.flour * other,
+        }
+    }
+}
+
+impl Div<i32> for Starter {
+    type Output = Self;
+    fn div(self, other: i32) -> Self {
+        self / other as f32
+    }
+}
+
+impl Div<f32> for Starter{
+    type Output = Self;
+    fn div(self, other: f32) -> Self {
+        Starter {
+            water: self.water / other,
+            flour: self.flour / other,
+        }
+    }
+}
+
+impl PartialEq for Starter {
+    fn eq(&self, other: &Self) -> bool {
+        self.flour == other.flour && self.water == other.water
+    }
+}
 impl std::fmt::Display for Starter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Starter({}% hydration):\n     Flour {:.2}\n     Water {:.2}\n         = {:.2} g", 
-            self.water.0 / self.flour.0 * 100.0, 
+            self.get_hydration(),
             self.flour, 
             self.water, 
             self.get_total_weight())
     }
 }
 
+#[cfg(test)]
+mod tests {
+    const FLOUR_TYPE: &str = "TEST";
+    use super::*;
+
+    #[test]
+    fn test_flour_constructor() {
+        let flour = Flour{
+            name: FLOUR_TYPE.into(), 
+            weight: 500.into()
+        };
+        assert_eq!(flour.name, FLOUR_TYPE);
+        assert_eq!(flour.weight, 500.into());
+    }
+}
