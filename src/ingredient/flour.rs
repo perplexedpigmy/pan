@@ -1,4 +1,5 @@
 use crate::common::Gram;
+use crate::common::Percent;
 use std::ops::Add;
 use std::ops::Mul;
 use std::ops::Div;
@@ -98,13 +99,14 @@ impl PartialEq<Gram> for Flour{
 }
 
 
+type FlourPercentage = Percent<1, 100>;
 pub struct FlourItem {
     pub name: String,
-    pub percentage: f32,
+    pub percentage: FlourPercentage,
 }
 
 impl FlourItem {
-    pub fn new(name: &str, percentage: f32) -> FlourItem {
+    pub fn new(name: &str, percentage: FlourPercentage) -> FlourItem {
         FlourItem {
             name: String::from(name),
             percentage

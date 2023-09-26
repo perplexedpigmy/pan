@@ -104,6 +104,13 @@ impl Mul<f32> for Gram {
     }
 }
 
+impl<const MIN : usize, const MAX: usize> Mul<Percent<MIN,MAX>> for Gram {
+    type Output = Self;
+    fn mul(self, other: Percent<MIN,MAX>) -> Self {
+        Gram(round(self.0 * (other.0 as f32 / 100.0), 2))
+    }
+}
+
 impl Div<i32> for Gram {
     type Output = Self;
     fn div(self, other: i32) -> Self {
@@ -115,6 +122,13 @@ impl Div<f32> for Gram {
     type Output = Self;
     fn div(self, other: f32) -> Self {
         Gram(round(self.0 / other,2) )
+    }
+}
+
+impl<const MIN : usize, const MAX: usize> Div<Percent<MIN, MAX>> for Gram {
+    type Output = Self;
+    fn div(self, other: Percent<MIN,MAX>) -> Self {
+        Gram(round(self.0 / (other.0 as f32 / 100.0),2) )
     }
 }
 
@@ -132,6 +146,50 @@ impl fmt::Display for Gram {
 }
 
 
+// A limit bounded percentage abstraction.
+// Fractional percentages are not supported.
+#[derive(Debug, Clone, Copy)]
+pub struct Percent<const MIN: usize, const MAX: usize> (usize);
+
+
+impl<const MIN: usize, const MAX: usize> Percent<MIN, MAX> {
+    pub fn new(value: usize) -> Self {
+        assert!(MIN <= value && value <= MAX, "value must be between {} and {} including", MIN, MAX);
+        Self ( value )
+    }
+}
+
+impl<const MIN : usize, const MAX: usize> From<usize> for Percent<MIN, MAX> {
+    fn from(value: usize) -> Self {
+        Percent::new(value)
+    }
+}
+
+impl<const MIN : usize, const MAX: usize> From<i32> for Percent<MIN, MAX> {
+    fn from(value: i32) -> Self {
+        Percent::new(value as usize)
+    }
+}
+
+impl<const MIN : usize, const MAX: usize> From<f32> for Percent<MIN, MAX> {
+    fn from(value: f32) -> Self {
+        Percent::new((value * 100.0) as usize)
+    }
+}
+
+impl<const MIN: usize, const MAX: usize> fmt::Display for Percent<MIN, MAX>{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:.2}%", self.0) 
+    }
+}
+
+
+impl<const MIN : usize, const MAX: usize> Div<Percent<MIN, MAX>> for f32 {
+    type Output = Self;
+    fn div(self, other: Percent<MIN,MAX>) -> Self {
+        round(self / (other.0 as f32 / 100.0),2) 
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -211,3 +269,5 @@ mod tests {
         assert_eq!(weight1 / 3.6, 11.4.into());
     }
 }
+
+

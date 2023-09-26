@@ -1,34 +1,40 @@
 use sequence;
 use lazy_static::lazy_static;
 use crate::common::Gram;
+use crate::common::Percent;
 use crate::ingredient::{
     salt::Salt,
     water::Water,
     flour::Flour,
     flour::FlourItem,
     starter::Starter,
+    starter::StarterPercentage,
+    starter::StarterHydrationPercentage,
     ingredient::Ingredient
 };
+
+type HydrationPercentage = Percent<50, 120>;
+type SaltPercentage = Percent<1, 4>;
 
 #[derive(Debug)]
 pub struct Recipe {
     total_weight: Gram,
-    hydration_percentage: f32,
+    hydration_percentage: HydrationPercentage,
     total_flour_weight: Gram,
     total_water_weight: Gram,
     salt_weight: Gram,
-    salt_percentage: f32,
-    starter_percentage: f32,
+    salt_percentage: SaltPercentage,
+    starter_percentage: StarterPercentage,
 
     ingredients: Vec<Ingredient>,
 }
 
 lazy_static! {
-    static ref DEFAULT_TOTAL_FLOUR_WEIGHT: Gram = 600.0.into(); // In grams
-    static ref DEFAULT_HYDRATION_PERCENTAGE: f32 = 0.7;         // 70% hydration
-    static ref DEFAULT_SALT_PERCENTAGE: f32 = 0.02;             // 2% salt content
-    static ref DEFAULT_STARTER_PERCENTAGE: f32 = 0.1;           // 10% starter of flour weight
-    static ref DEFAULT_STARTER_HYDRATION: f32 = 1.0;            // 100% hydration
+    static ref DEFAULT_TOTAL_FLOUR_WEIGHT: Gram = 600.0.into();                    // In grams
+    static ref DEFAULT_HYDRATION_PERCENTAGE: HydrationPercentage = 70.into();      // 70% hydration
+    static ref DEFAULT_SALT_PERCENTAGE: SaltPercentage = 2.into();                 // 2% salt content
+    static ref DEFAULT_STARTER_PERCENTAGE: StarterPercentage = 10.into();          // 10% starter of flour weight
+    static ref DEFAULT_STARTER_HYDRATION: StarterHydrationPercentage = 100.into(); // 100% hydration
 }
 
 impl Recipe {
@@ -142,14 +148,14 @@ impl Recipe {
 
 impl std::fmt::Display for Recipe {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        writeln!(f, "Summary:\n Total weight: {}\n Flour: {}\n Water: {}({}%)\n Salt: {}({}%)\n\nIngredients: (using {}% starter)\n   {}", 
+        writeln!(f, "Summary:\n Total weight: {}\n Flour: {}\n Water: {}({})\n Salt: {}({})\n\nIngredients: (using {} starter)\n   {}", 
             self.total_weight,
             self.total_flour_weight,
             self.total_water_weight,
-            self.hydration_percentage * 100.0,
+            self.hydration_percentage,
             self.salt_weight,
-            self.salt_percentage * 100.0,
-            self.starter_percentage * 100.0,
+            self.salt_percentage,
+            self.starter_percentage,
             self.ingredients.iter()
                  .map(|i| i.to_string()).collect::<Vec<String>>()
                  .join("\n   ")

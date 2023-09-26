@@ -1,4 +1,5 @@
 use crate::common::Gram;
+use crate::common::Percent;
 use crate::ingredient::flour::Flour;
 use crate::ingredient::water::Water;
 
@@ -6,6 +7,9 @@ use crate::ingredient::water::Water;
 use std::ops::Add;
 use std::ops::Mul;
 use std::ops::Div;
+
+pub type StarterPercentage = Percent<1, 30>;
+pub type StarterHydrationPercentage = Percent<50, 300>;
 
 #[derive(Debug)]
 /// A sourdough starter
@@ -53,7 +57,7 @@ impl Starter {
     /// ```
     /// assert_eq!(1, 1)
     /// ````
-    pub fn create(total_weight: Gram, hydration: f32, percent_starter: f32) -> Starter {
+    pub fn create(total_weight: Gram, hydration: StarterHydrationPercentage, percent_starter: StarterPercentage) -> Starter {
         let starter_weight = total_weight * percent_starter;
         let flour_ratio = 1.0 / hydration; // The flour ratio for each 1 unit of water
         let portion = starter_weight / ( flour_ratio + 1.0);
@@ -67,8 +71,8 @@ impl Starter {
         }
     }
 
-    pub fn get_hydration(&self) -> f32 {
-        self.water.0 / self.flour.0 
+    pub fn get_hydration(&self) -> StarterHydrationPercentage{
+        (self.water.0 / self.flour.0).into() 
     }
     
     pub fn get_flour_weight(&self) -> f32 {
@@ -146,7 +150,7 @@ impl PartialEq for Starter {
 }
 impl std::fmt::Display for Starter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Starter({}% hydration):\n     Flour {:.2}\n     Water {:.2}\n         = {:.2} g", 
+        write!(f, "Starter({} hydration):\n     Flour {:.2}\n     Water {:.2}\n         = {:.2} g", 
             self.get_hydration(),
             self.flour, 
             self.water, 
