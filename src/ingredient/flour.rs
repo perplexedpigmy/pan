@@ -100,6 +100,7 @@ impl PartialEq<Gram> for Flour{
 
 
 type FlourPercentage = Percent<1, 100>;
+#[derive(Debug)]
 pub struct FlourItem {
     pub name: String,
     pub percentage: FlourPercentage,
