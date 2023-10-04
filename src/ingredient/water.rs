@@ -1,8 +1,11 @@
 use crate::common::Gram;
 
+use crate::common::Percent;
 use std::ops::Add;
 use std::ops::Mul;
 use std::ops::Div;
+
+pub type HydrationPercentage = Percent<50, 120>;
 
 /// Water(Liquid) content in dough
 #[derive(Debug)]

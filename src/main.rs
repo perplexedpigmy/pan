@@ -1,12 +1,15 @@
 use pn::recipe::Recipe;
-use pn::ingredient::flour::FlourItem;
 
 fn main() {
 
-    let args = pn::get_args().unwrap();
-    let bread_recipe = Recipe::default()
-                .set_total_flours(args.weight.into(), 
-                                  &args.flours,
-    );
+    let config = pn::get_args().unwrap();
+    let bread_recipe = Recipe::craft(config);
     println!("{:#}", bread_recipe);
+    
+    // println!("{:#?}", args.flours);
+    // let bread_recipe = Recipe::default()
+    //             .set_total_flours(args.weight.into(), 
+    //                               &args.flours,
+    // );
+    // println!("{:#}", bread_recipe);
 }

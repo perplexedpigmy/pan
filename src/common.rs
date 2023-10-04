@@ -3,6 +3,7 @@ use std::ops::Add;
 use std::ops::Mul;
 use std::ops::Div;
 use std::ops::Sub;
+use std::iter::Sum;
 use std::cmp::PartialEq;
 
 fn round(value: f32, digits: i32) -> f32 {
@@ -148,15 +149,20 @@ impl fmt::Display for Gram {
 
 // A limit bounded percentage abstraction.
 // Fractional percentages are not supported.
-#[derive(Debug, Clone, Copy)]
-pub struct Percent<const MIN: usize, const MAX: usize> (usize);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
+pub struct Percent<const MIN: usize, const MAX: usize> (pub usize);
 
 
 impl<const MIN: usize, const MAX: usize> Percent<MIN, MAX> {
+    pub const ZERO: Self = Self(0);
+    pub const MIN: Self = Self(MIN);
+    pub const MAX: Self = Self(MAX);
+
     pub fn new(value: usize) -> Self {
         assert!(MIN <= value && value <= MAX, "value must be between {} and {} including", MIN, MAX);
         Self ( value )
     }
+
 }
 
 impl<const MIN : usize, const MAX: usize> From<usize> for Percent<MIN, MAX> {
@@ -183,11 +189,27 @@ impl<const MIN: usize, const MAX: usize> fmt::Display for Percent<MIN, MAX>{
     }
 }
 
-
 impl<const MIN : usize, const MAX: usize> Div<Percent<MIN, MAX>> for f32 {
     type Output = Self;
     fn div(self, other: Percent<MIN,MAX>) -> Self {
         round(self / (other.0 as f32 / 100.0),2) 
+    }
+}
+
+
+impl<const MIN : usize, const MAX: usize> Add<Percent<MIN, MAX>> for Percent<MIN,MAX> {
+    type Output = Self;
+    fn add(self, other: Percent<MIN,MAX>) -> Self {
+        Self (self.0 + other.0)
+    }
+}
+
+impl<const MIN: usize, const MAX: usize> Sum for Percent<MIN,MAX> {
+    fn sum<I>(iter: I) -> Self
+    where
+        I: Iterator<Item = Self>,
+    {
+        iter.fold(Self(0), |acc, x| acc + x)
     }
 }
 

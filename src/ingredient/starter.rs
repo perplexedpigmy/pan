@@ -1,5 +1,6 @@
 use crate::common::Gram;
 use crate::common::Percent;
+use crate::ingredient::flour::Measure;
 use crate::ingredient::flour::Flour;
 use crate::ingredient::water::Water;
 
@@ -48,8 +49,9 @@ impl Starter {
     ///
     /// # Fields 
     ///
-    /// `flour`: The flour weight 
-    /// `water`: The water weight
+    /// `total_weight`: Total desired weight of flour & water (no salt nor additional ingredients)
+    /// `hydration`: Starter required hydration
+    /// `percent_starter`: Percent of starter from total_weight``
     ///
     /// # Example
     /// 
@@ -99,12 +101,18 @@ impl Add<Water> for Starter {
     }
 }
 
+/// Adding a Flour depends on the flour measurement
+/// When it measures weight the weight is simply added
+/// When it measures a ratio the current starter weight is added the ratio's percentage
 impl Add<Flour> for Starter {
     type Output = Self;
     fn add(self, other: Flour) -> Self {
         Starter {
             water: self.water,
-            flour: self.flour + other.weight,
+            flour: self.flour + match other.measure { 
+                Measure::Weight(w) => w,
+                Measure::Ratio(r) => self.flour * (r + 100.into()) / 100,
+            } 
         }
     }
 }
@@ -167,9 +175,10 @@ mod tests {
     fn test_flour_constructor() {
         let flour = Flour{
             name: FLOUR_TYPE.into(), 
-            weight: 500.into()
+            measure: Measure::Weight(500.into()),
+            weight: None,
         };
         assert_eq!(flour.name, FLOUR_TYPE);
-        assert_eq!(flour.weight, 500.into());
+        assert_eq!(flour.measure, Measure::Weight(500.into()));
     }
 }

@@ -1,7 +1,12 @@
-use simple_eyre::eyre::{eyre, Result};
+use simple_eyre::eyre::Result;
 use clap::{Parser, command,arg };
-use crate::ingredient::flour::FlourItem;
-
+use crate::ingredient::flour::FlourMix;
+use crate::ingredient::flour::Flour;
+use crate::ingredient::flour::Measure;
+use crate::ingredient::starter::StarterHydrationPercentage;
+use crate::ingredient::starter::StarterPercentage;
+use crate::ingredient::salt::SaltPercentage;
+use crate::ingredient::water::HydrationPercentage;
 
 
 #[macro_use]
@@ -17,45 +22,63 @@ struct Cli {
     #[arg(short, long, value_name = "WEIGHT", default_value = "600")]
     weight: Option<i32>,
 
+    #[arg(short = 'd', long, value_name = "HYDRATION", default_value = "70")]
+    hydration: Option<i32>,
+
     #[arg(short , long, action = clap::ArgAction::Append, default_value = "White:100")]
     flour: Vec<String>,
+
+    #[arg(short = 'y' , long,  default_value = "100")]
+    starter_hydration: Option<i32>,
+
+    #[arg(short = 'p', long,  default_value = "10")]
+    starter_percentage: Option<i32>,
+
+    #[arg(short, long,  default_value = "2")]
+    salt_percentage: Option<i32>,
 }
 
-pub struct Args {
-    pub weight: i32,
-    pub flours: Vec<FlourItem>,
+pub struct Config {
+    pub flours: FlourMix,
+    pub hydration: HydrationPercentage,
+    pub starter_hydration: StarterHydrationPercentage,
+    pub starter_percentage: StarterPercentage,
+    pub salt_percentage: SaltPercentage,
 }
 
-pub fn get_args() -> Result<Args> {
+pub fn get_args() -> Result<Config> {
     simple_eyre::install()?;
 
     let cli = Cli::parse();
-    println!("{:#?}", cli.weight);
-    let mut total_percentage = 0;
-    let flours : Vec<FlourItem>= cli.flour.iter().map( |f| {
-        if let Some((flour, ratio)) = match f.split_once(":") {
+    // let mut total_percentage = 0;
+    let mut flours = FlourMix::new(cli.weight.unwrap().into());
+    cli.flour.iter().for_each(|f| {
+        if let Some((name, ratio)) = match f.split_once(":") {
             Some((f, r)) => Some(( f, r.parse::<i32>().unwrap())),
             _ => None,
         } {
-            total_percentage += ratio;
-            FlourItem {
-                name: flour.to_string(),
-                percentage: ratio.into()
-            }
+            // total_percentage += ratio;
+            flours.add_flour( 
+                Flour::new(
+                    name, 
+                    Measure::Ratio( ratio.into() )) 
+            );
         } else {
             panic!("\"{}\" is not a valid flour/ratio syntax.", f);
         }
-    }).collect(); 
+    });
 
-    if total_percentage < 100 || total_percentage > 100 {
-        return Err(eyre!("Total flour percentage must but be equal to 100%"));
-    }
-        
-    println!("{:#?}", flours);
+    let hydration = cli.hydration.unwrap().into();
+    let starter_hydration = cli.starter_hydration.unwrap().into();
+    let starter_percentage = cli.starter_percentage.unwrap().into();
+    let salt_percentage = cli.salt_percentage.unwrap().into();
 
-    Ok(Args {
-        weight: cli.weight.unwrap(), 
+    Ok(Config {
         flours,
+        hydration, 
+        starter_hydration,
+        starter_percentage,
+        salt_percentage,
     }) 
 }
 

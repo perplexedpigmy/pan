@@ -1,4 +1,7 @@
 use crate::common::Gram;
+use crate::common::Percent;
+
+pub type SaltPercentage = Percent<1, 4>;
 
 #[derive(Debug)]
 pub struct Salt {
