@@ -2,7 +2,8 @@ use crate::common::Gram;
 use crate::common::Percent;
 use colored::*;
 
-pub type SaltPercentage = Percent<1, 4>;
+/// Salt content in dough, range from 1.00%-4.00% with 2 decimal places.
+pub type SaltPercentage = Percent<1, 4, 1>;
 
 #[derive(Debug)]
 pub struct Salt {

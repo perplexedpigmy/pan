@@ -50,7 +50,7 @@ impl Recipe {
       ingredients: vec![
         Ingredient::Flour(config.flours.apply_starter(&starter)),
         Ingredient::Water(Water {
-          weight: total_water_weight.into(),
+          weight: (total_water_weight - starter.get_water_weight()).into()
         }),
         Ingredient::Salt(Salt {
           weight: salt_weight.into(),

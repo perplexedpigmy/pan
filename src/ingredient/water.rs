@@ -6,7 +6,7 @@ use std::ops::Div;
 use std::ops::Mul;
 use colored::*;
 
-pub type HydrationPercentage = Percent<50, 120>;
+pub type HydrationPercentage = Percent<50, 120, 0>;
 
 /// Water(Liquid) content in dough
 #[derive(Debug)]

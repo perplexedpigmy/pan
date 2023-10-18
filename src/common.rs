@@ -110,10 +110,12 @@ impl Mul<f32> for Gram {
   }
 }
 
-impl<const MIN: usize, const MAX: usize> Mul<Percent<MIN, MAX>> for Gram {
+impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> Mul<Percent<MIN, MAX, DECIMALS>> for Gram {
   type Output = Self;
-  fn mul(self, other: Percent<MIN, MAX>) -> Self {
-    Gram(round(self.0 * (other.0 as f32 / 100.0), 2))
+  fn mul(self, other: Percent<MIN, MAX, DECIMALS>) -> Self {
+    // let normalizer: f32 = Percent::DECIMALS_MULTIPLIER as f32 * 100.0f32;
+    let normalizer: f32 = Percent::<MIN, MAX, DECIMALS>::DECIMALS_MULTIPLIER as f32 * 100.0f32;
+    Gram(round(self.0 * (other.0 as f32 / normalizer), 2))
   }
 }
 
@@ -131,10 +133,11 @@ impl Div<f32> for Gram {
   }
 }
 
-impl<const MIN: usize, const MAX: usize> Div<Percent<MIN, MAX>> for Gram {
+impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> Div<Percent<MIN, MAX, DECIMALS>> for Gram {
   type Output = Self;
-  fn div(self, other: Percent<MIN, MAX>) -> Self {
-    Gram(round(self.0 / (other.0 as f32 / 100.0), 2))
+  fn div(self, other: Percent<MIN, MAX, DECIMALS>) -> Self {
+    let normalizer: f32 = Percent::<MIN, MAX, DECIMALS>::DECIMALS_MULTIPLIER as f32 * 100.0f32;
+    Gram(round(self.0 / (other.0 as f32 / normalizer), 2))
   }
 }
 
@@ -153,17 +156,20 @@ impl fmt::Display for Gram {
 // A limit bounded percentage abstraction.
 // Fractional percentages are not supported.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
-pub struct Percent<const MIN: usize, const MAX: usize>(pub usize);
+pub struct Percent<const MIN: usize, const MAX: usize, const DECIMALS: usize>(pub usize);
 
-impl<const MIN: usize, const MAX: usize> Percent<MIN, MAX> {
+impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> Percent<MIN, MAX, DECIMALS> {
   pub const ZERO: Self = Self(0);
   pub const MIN: Self = Self(MIN);
   pub const MAX: Self = Self(MAX);
+  pub const DECIMALS: usize = DECIMALS;
+  pub const DECIMALS_MULTIPLIER: usize = 10usize.pow(DECIMALS as u32);
 
   pub fn new(value: usize) -> Self {
     assert!(
-      MIN <= value && value <= MAX,
-      "value must be between {} and {} including",
+      MIN * Self::DECIMALS_MULTIPLIER <= value && value <= MAX * Self::DECIMALS_MULTIPLIER,
+      "value {} must be between {} and {} including",
+      value,
       MIN,
       MAX
     );
@@ -171,45 +177,45 @@ impl<const MIN: usize, const MAX: usize> Percent<MIN, MAX> {
   }
 }
 
-impl<const MIN: usize, const MAX: usize> From<usize> for Percent<MIN, MAX> {
+impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> From<usize> for Percent<MIN, MAX, DECIMALS> {
   fn from(value: usize) -> Self {
-    Percent::new(value)
+    Percent::new(value * Self::DECIMALS_MULTIPLIER)
   }
 }
 
-impl<const MIN: usize, const MAX: usize> From<i32> for Percent<MIN, MAX> {
+impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> From<i32> for Percent<MIN, MAX, DECIMALS> {
   fn from(value: i32) -> Self {
-    Percent::new(value as usize)
+    Percent::new(value as usize * Self::DECIMALS_MULTIPLIER)
   }
 }
 
-impl<const MIN: usize, const MAX: usize> From<f32> for Percent<MIN, MAX> {
+impl<const MIN: usize, const MAX: usize, const DECIMALS : usize> From<f32> for Percent<MIN, MAX, DECIMALS> {
   fn from(value: f32) -> Self {
-    Percent::new((value * 100.0) as usize)
+    Percent::new((value * Self::DECIMALS_MULTIPLIER as f32) as usize)
   }
 }
 
-impl<const MIN: usize, const MAX: usize> fmt::Display for Percent<MIN, MAX> {
+impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> fmt::Display for Percent<MIN, MAX, DECIMALS> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{:.2}%", self.0)
+    write!(f, "{:.DECIMALS$}%", self.0 as f32 / Self::DECIMALS_MULTIPLIER as f32)
   }
 }
 
-impl<const MIN: usize, const MAX: usize> Div<Percent<MIN, MAX>> for f32 {
+impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> Div<Percent<MIN, MAX, DECIMALS>> for f32 {
   type Output = Self;
-  fn div(self, other: Percent<MIN, MAX>) -> Self {
+  fn div(self, other: Percent<MIN, MAX, DECIMALS>) -> Self {
     round(self / (other.0 as f32 / 100.0), 2)
   }
 }
 
-impl<const MIN: usize, const MAX: usize> Add<Percent<MIN, MAX>> for Percent<MIN, MAX> {
+impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> Add<Percent<MIN, MAX, DECIMALS>> for Percent<MIN, MAX, DECIMALS> {
   type Output = Self;
-  fn add(self, other: Percent<MIN, MAX>) -> Self {
+  fn add(self, other: Percent<MIN, MAX, DECIMALS>) -> Self {
     Self(self.0 + other.0)
   }
 }
 
-impl<const MIN: usize, const MAX: usize> Sum for Percent<MIN, MAX> {
+impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> Sum for Percent<MIN, MAX, DECIMALS> {
   fn sum<I>(iter: I) -> Self
   where
     I: Iterator<Item = Self>,

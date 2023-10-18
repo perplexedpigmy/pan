@@ -33,7 +33,7 @@ struct Cli {
   starter_percentage: Option<i32>,
 
   #[arg(short, long, default_value = "2")]
-  salt_percentage: Option<i32>,
+  salt_percentage: Option<f32>,
 }
 
 pub struct Config {
@@ -48,7 +48,6 @@ pub fn get_args() -> Result<Config> {
   simple_eyre::install()?;
 
   let cli = Cli::parse();
-  // let mut total_percentage = 0;
   let mut flours = FlourMix::new(cli.weight.unwrap().into());
   cli.flour.iter().for_each(|f| {
     if let Some((name, ratio)) = match f.split_once(":") {

@@ -8,7 +8,7 @@ use std::ops::Div;
 use std::ops::Mul;
 use colored::*;
 
-pub type FlourPercentage = Percent<1, 100>;
+pub type FlourPercentage = Percent<1, 100, 0>;
 
 #[derive(Debug, PartialEq)]
 pub enum Measure {

@@ -9,8 +9,8 @@ use std::ops::Add;
 use std::ops::Div;
 use std::ops::Mul;
 
-pub type StarterPercentage = Percent<1, 30>;
-pub type StarterHydrationPercentage = Percent<50, 300>;
+pub type StarterPercentage = Percent<1, 30, 0>;
+pub type StarterHydrationPercentage = Percent<50, 300, 0>;
 
 #[derive(Debug)]
 /// A sourdough starter
@@ -75,7 +75,7 @@ impl Starter {
   }
 
   pub fn get_hydration(&self) -> StarterHydrationPercentage {
-    (self.water.0 / self.flour.0).into()
+    ((self.water.0 / self.flour.0) * 100f32).into()
   }
 
   pub fn get_flour_weight(&self) -> Gram {
