@@ -5,6 +5,7 @@ use std::ops::Add;
 use std::ops::Div;
 use std::ops::Mul;
 use std::ops::Sub;
+use std::ops::AddAssign;
 
 fn round(value: f32, digits: i32) -> f32 {
   let multiplier = 10_f32.powi(digits);
@@ -32,6 +33,21 @@ fn round(value: f32, digits: i32) -> f32 {
 #[derive(Debug, Clone, Copy)]
 pub struct Gram(pub f32);
 
+impl Gram {
+  pub const ZERO: Self = Self(0.0);
+
+  pub fn as_ratio_of<T>(self, other: &Self) -> T
+    where
+      T: From<f32>,
+    {
+      // Percent::From(f32) expects a percentage like 10 for 10%, 15.2 for 15.2%
+      // while a division of floats yields a decimal fraction like 0.1 and 0.152
+      // Hence the multiplication by 100
+      // The T::from is responsible to round up by the DECIMAL resolution.
+      T::from(self.0 / other.0 * 100.0 )
+    }
+}
+
 impl From<i32> for Gram {
   fn from(value: i32) -> Self {
     Gram(value as f32)
@@ -45,6 +61,11 @@ impl From<f32> for Gram {
 }
 
 // Operator overloading
+impl AddAssign<Gram> for Gram {
+  fn add_assign(& mut self, other: Self) {
+    self.0 += other.0;
+  }
+}
 
 impl Add<Gram> for Gram {
   type Output = Self;
@@ -191,7 +212,8 @@ impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> From<i32> for Pe
 
 impl<const MIN: usize, const MAX: usize, const DECIMALS : usize> From<f32> for Percent<MIN, MAX, DECIMALS> {
   fn from(value: f32) -> Self {
-    Percent::new((value * Self::DECIMALS_MULTIPLIER as f32) as usize)
+    let rounding_decimal = 0.5 / 10_f32.powf(DECIMALS as f32);
+    Percent::new(((value + rounding_decimal) * Self::DECIMALS_MULTIPLIER as f32) as usize)
   }
 }
 

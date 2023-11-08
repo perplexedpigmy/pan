@@ -50,7 +50,7 @@ pub fn get_args() -> Result<Config> {
   let cli = Cli::parse();
   let mut flours = FlourMix::new(cli.weight.unwrap().into());
   cli.flour.iter().for_each(|f| {
-    if let Some((name, ratio)) = match f.split_once(":") {
+    if let Some((name, ratio)) = match f.split_once(':') {
       Some((f, r)) => Some((f, r.parse::<i32>().unwrap())),
       _ => None,
     } {

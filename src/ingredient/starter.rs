@@ -39,6 +39,20 @@ pub struct Starter {
 }
 
 impl Starter {
+
+  pub fn set(weight: Gram, hydration: StarterHydrationPercentage) -> Starter {
+
+    let flour_ratio = 1.0 / hydration; // The flour ratio for each 1 unit of water
+    let portion = weight / (flour_ratio + 1.0);
+
+    let flour = portion * flour_ratio;
+    let water = portion;
+
+    Self {
+        flour, 
+        water
+    }
+  } 
   /**
    *
    * @param total_flour(f32) total flour weight in grams
@@ -65,13 +79,14 @@ impl Starter {
     percent_starter: StarterPercentage,
   ) -> Starter {
     let starter_weight = total_weight * percent_starter;
-    let flour_ratio = 1.0 / hydration; // The flour ratio for each 1 unit of water
-    let portion = starter_weight / (flour_ratio + 1.0);
+    Self::set(starter_weight, hydration)
+    // let flour_ratio = 1.0 / hydration; // The flour ratio for each 1 unit of water
+    // let portion = starter_weight / (flour_ratio + 1.0);
 
-    let flour = portion * flour_ratio;
-    let water = portion;
+    // let flour = portion * flour_ratio;
+    // let water = portion;
 
-    Starter { flour, water }
+    // Starter { flour, water }
   }
 
   pub fn get_hydration(&self) -> StarterHydrationPercentage {
@@ -89,6 +104,10 @@ impl Starter {
   pub fn get_total_weight(&self) -> Gram {
     self.flour + self.water
   }
+
+  pub fn reset(&self, weight: Gram, hydration: StarterHydrationPercentage) -> Starter {
+    Self::set(weight, hydration)
+  } 
 }
 
 impl Add<Water> for Starter {

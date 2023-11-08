@@ -13,4 +13,5 @@ clap = { version = "^4.4.5", features = ["cargo", "derive", "unicode", "wrap_hel
 simple-eyre = "^0.3"
 capitalize = "0.1.0"
 colored = "2.0.4"
+syn = { version = "2.0.39", features = ["full"] }
 

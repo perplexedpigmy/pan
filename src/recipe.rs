@@ -1,7 +1,7 @@
 use crate::common::Gram;
 use crate::ingredient::{
   ingredient::Ingredient, salt::Salt, salt::SaltPercentage, starter::Starter,
-  starter::StarterPercentage, water::HydrationPercentage, water::Water,
+  starter::StarterPercentage, starter::StarterHydrationPercentage, water::HydrationPercentage, water::Water,
 };
 use crate::Config;
 
@@ -20,6 +20,14 @@ pub struct Recipe {
 use colored::*;
 
 impl Recipe {
+
+  // pub fn remove<T,F>(vec: &mut Vec<T>, condition: F)
+  // where
+  //   F: Fn(&T) -> bool,
+  // {
+  //   vec.retain(|i| !condition(i))
+  // }
+ 
   pub fn get_starter(&self) -> Option<&Starter> {
     for ingredient in &self.ingredients {
       if let Ingredient::Starter(s) = ingredient {
@@ -50,10 +58,10 @@ impl Recipe {
       ingredients: vec![
         Ingredient::Flour(config.flours.apply_starter(&starter)),
         Ingredient::Water(Water {
-          weight: (total_water_weight - starter.get_water_weight()).into()
+          weight: total_water_weight - starter.get_water_weight()
         }),
         Ingredient::Salt(Salt {
-          weight: salt_weight.into(),
+          weight: salt_weight
         }),
         Ingredient::Starter(starter),
       ],
@@ -69,6 +77,52 @@ impl Recipe {
       Some(tw) => Self::craft_by_ratio(&tw, config),
       None => Self::craft_by_weight(config),
     }
+  }
+  pub fn recalc(&mut self) -> &mut Self {
+
+      let mut total_starter_weight = Gram::ZERO;
+      let mut salt_weight = Gram::ZERO;
+      let mut total_flour_weight = Gram::ZERO;
+      let mut total_water_weight = Gram::ZERO;
+
+    for ingredient in &self.ingredients {
+      match ingredient {
+        Ingredient::Starter(s) => {
+          total_starter_weight += s.get_total_weight();
+          total_flour_weight += s.get_flour_weight();
+          total_water_weight += s.get_water_weight();
+        },
+        Ingredient::Salt(s) => {
+          salt_weight += s.weight; 
+        },
+        Ingredient::Flour(f) => {
+          total_flour_weight += f.derive_total_weight()
+        }
+        Ingredient::Water(w) => {
+          total_water_weight += w.weight;
+        },
+      } 
+    }
+      self.salt_weight = salt_weight;
+      self.total_flour_weight = total_flour_weight;
+      self.total_water_weight = total_water_weight;
+      self.total_weight = total_flour_weight + salt_weight + total_water_weight;
+
+      self.salt_percentage = salt_weight.as_ratio_of::<SaltPercentage>(&total_flour_weight);
+      self.hydration_percentage = total_water_weight.as_ratio_of(&total_flour_weight);
+      self.starter_percentage = total_starter_weight.as_ratio_of(&total_flour_weight);
+      self
+  }
+
+  /// To be used when the start weight used was different then the suggested recipe
+  /// This will have impact on the hydration, and flour content but the explicitly added
+  /// flour/water are assumed not to be touched
+  pub fn set_starter_weight(&mut self, weight: Gram, hydration: StarterHydrationPercentage) -> simple_eyre::Result<&mut Self> {
+    let starter = self
+                  .get_starter().unwrap()
+                  .reset(weight, hydration);
+    replace_element!(self.ingredients, Ingredient::Starter(_), Ingredient::Starter(starter));
+    Ok(self.recalc())
   }
 }
 
