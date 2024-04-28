@@ -34,14 +34,21 @@ struct Cli {
 
   #[arg(short, long, default_value = "2")]
   salt_percentage: Option<f32>,
+
+  #[arg(long)]
+  reset_starter_weight: Option<f32>,
 }
 
 pub struct Config {
+  // Initial recipie attributes
   pub flours: FlourMix,
   pub hydration: HydrationPercentage,
   pub starter_hydration: StarterHydrationPercentage,
   pub starter_percentage: StarterPercentage,
   pub salt_percentage: SaltPercentage,
+
+  // Adaptations attriututes
+  pub reset_starter_weight: Option<f32>,
 }
 
 pub fn get_args() -> Result<Config> {
@@ -71,5 +78,7 @@ pub fn get_args() -> Result<Config> {
     starter_hydration,
     starter_percentage,
     salt_percentage,
+    
+    reset_starter_weight: cli.reset_starter_weight,
   })
 }

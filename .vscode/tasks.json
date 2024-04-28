@@ -1,0 +1,23 @@
+{
+    "tasks": [
+        {
+            "type": "cargo",
+            "command": "run",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "args": [
+                "--",
+                "-w", "1100",                      // Total flour weight
+                "-f", "white:80",                  // 80% White strong bread flour
+                "-f", "rye:20",                    // 20% rye
+                "-s", "2.5",                       // Salt percentage
+                "-d", "70",                        // Hydration
+                "-p", "23",                        // Starter percentage
+                "--reset-starter-weight", "230"    // Recalculate after setting starter weight  
+            ],
+
+            "label": "Display: 1100gr flour bread recipe"
+        }
+    ]
+}

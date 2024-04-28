@@ -9,7 +9,7 @@ use colored::*;
 pub type HydrationPercentage = Percent<50, 120, 0>;
 
 /// Water(Liquid) content in dough
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Water {
   pub weight: Gram,
 }

@@ -1,6 +1,6 @@
 use crate::ingredient::{flour::FlourMix, salt::Salt, starter::Starter, water::Water};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Ingredient {
   Water(Water),
   Flour(FlourMix),

@@ -196,6 +196,13 @@ impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> Percent<MIN, MAX
     );
     Self(value)
   }
+
+  pub fn valid_new(value: usize) -> Option<Self> {
+    if (MIN * Self::DECIMALS_MULTIPLIER) <= value && value <= (MAX * Self::DECIMALS_MULTIPLIER) {
+      return Some(Self(value));
+    } 
+    None
+  }
 }
 
 impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> From<usize> for Percent<MIN, MAX, DECIMALS> {

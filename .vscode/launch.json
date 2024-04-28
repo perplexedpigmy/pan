@@ -1,0 +1,73 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'pn'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=pn",
+                    "--package=pn"
+                ],
+                "filter": {
+                    "name": "pn",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "-w", "1100",                      // Total flour weight
+                "-f", "white:80",                  // 80% White strong bread flour
+                "-f", "rye:20",                    // 20% rye
+                "-s", "2.5",                       // Salt percentage
+                "-d", "70",                        // Hydration
+                "-p", "23",                        // Starter percentage
+                "--reset-starter-weight", "230"    // Recalculate after setting starter weight  
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'pn'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=pn"
+                ],
+                "filter": {
+                    "name": "pn",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'pn'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=pn",
+                    "--package=pn"
+                ],
+                "filter": {
+                    "name": "pn",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

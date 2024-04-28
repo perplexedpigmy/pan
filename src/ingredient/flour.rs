@@ -7,7 +7,7 @@ use colored::*;
 
 pub type FlourPercentage = Percent<1, 100, 0>;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Measure {
   Weight(Gram),
   Ratio(FlourPercentage),
@@ -26,7 +26,7 @@ impl std::fmt::Display for Measure {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Flour {
   pub name: String,
   pub measure: Measure,
@@ -58,7 +58,7 @@ impl Flour {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FlourMix {
   pub total_weight: Option<Gram>, // All flour inlcuding the starter
   pub flours: Vec<Flour>,

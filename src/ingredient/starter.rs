@@ -33,6 +33,7 @@ pub type StarterHydrationPercentage = Percent<50, 300, 0>;
 /// * `water`: The water content
 ///
 ///
+#[derive(Clone)]
 pub struct Starter {
   flour: Gram,
   water: Gram,
@@ -180,7 +181,7 @@ impl std::fmt::Display for Starter {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(
       f,
-      "{}{} {}):\n     {} {}\n     {} {}\n         = {}",
+      "{}{} {}\n     {} {}\n     {} {}\n         = {}",
       "Starter(".bold().blue(),
       self.get_hydration().to_string().bold().blue(),
       "hydration):".bold().blue(),
