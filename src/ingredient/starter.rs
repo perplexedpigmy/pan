@@ -1,7 +1,7 @@
 use crate::common::Gram;
 use crate::common::Percent;
+use crate::common::Measure;
 use crate::ingredient::flour::Flour;
-use crate::ingredient::flour::Measure;
 use crate::ingredient::water::Water;
 use colored::*;
 
@@ -203,7 +203,7 @@ mod tests {
   fn test_flour_constructor() {
     let flour = Flour {
       name: FLOUR_TYPE.into(),
-      measure: Measure::Weight(500.into()),
+      measure: Measure::<1,100,0>::Weight(500.into()),
       weight: None,
     };
     assert_eq!(flour.name, FLOUR_TYPE);

@@ -14,6 +14,14 @@ pub struct Water {
   pub weight: Gram,
 }
 
+impl Water {
+  pub fn reset(&self, new_weight: Gram) -> Self {
+    Self {
+      weight: new_weight,
+    }
+  }
+}
+
 impl<T> From<T> for Water
 where
   T: Into<Gram>,

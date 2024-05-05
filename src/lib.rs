@@ -1,18 +1,16 @@
+use crate::common::Measure;
 use crate::ingredient::flour::Flour;
 use crate::ingredient::flour::FlourMix;
-use crate::ingredient::flour::Measure;
 use crate::ingredient::salt::SaltPercentage;
 use crate::ingredient::starter::StarterHydrationPercentage;
 use crate::ingredient::starter::StarterPercentage;
 use crate::ingredient::water::HydrationPercentage;
 use clap::{arg, command, Parser};
-use simple_eyre::eyre::Result;
-
-#[macro_use]
-mod macros;
+use crate::recipe::{ Adaptations, ResetStarterWeight, ResetWaterWeight};
 mod common;
 pub mod ingredient;
 pub mod recipe;
+mod macros;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -37,6 +35,10 @@ struct Cli {
 
   #[arg(long)]
   reset_starter_weight: Option<f32>,
+
+  #[arg(long)]
+  reset_water_weight: Option<f32>,
+
 }
 
 pub struct Config {
@@ -47,11 +49,10 @@ pub struct Config {
   pub starter_percentage: StarterPercentage,
   pub salt_percentage: SaltPercentage,
 
-  // Adaptations attriututes
-  pub reset_starter_weight: Option<f32>,
+  pub adaptations: Adaptations,
 }
 
-pub fn get_args() -> Result<Config> {
+pub fn get_args() -> simple_eyre::Result<Config> {
   simple_eyre::install()?;
 
   let cli = Cli::parse();
@@ -72,6 +73,15 @@ pub fn get_args() -> Result<Config> {
   let starter_percentage = cli.starter_percentage.unwrap().into();
   let salt_percentage = cli.salt_percentage.unwrap().into();
 
+  let mut adaptations: Adaptations = vec![];
+  if let Some(new_starter_weight) = cli.reset_starter_weight {
+    adaptations.push( Box::new( ResetStarterWeight { new_starter_weight: new_starter_weight.into() }));
+  }
+
+  if let Some(new_water_weight) = cli.reset_water_weight {
+    adaptations.push( Box::new( ResetWaterWeight { new_water_weight: new_water_weight.into() }));
+  }
+
   Ok(Config {
     flours,
     hydration,
@@ -79,6 +89,6 @@ pub fn get_args() -> Result<Config> {
     starter_percentage,
     salt_percentage,
     
-    reset_starter_weight: cli.reset_starter_weight,
+    adaptations,
   })
 }

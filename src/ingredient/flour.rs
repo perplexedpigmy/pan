@@ -1,19 +1,15 @@
+
 use crate::common::Gram;
 use crate::common::Percent;
+use crate::common::Measure;
+use crate::gen_seq_first_elem;
 use crate::ingredient::starter::Starter;
 use capitalize::Capitalize;
-use gen_seq_first_elem;
 use colored::*;
 
 pub type FlourPercentage = Percent<1, 100, 0>;
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Measure {
-  Weight(Gram),
-  Ratio(FlourPercentage),
-}
-
-impl std::fmt::Display for Measure {
+impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> std::fmt::Display for Measure<MIN, MAX, DECIMALS> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(
       f,
@@ -27,9 +23,9 @@ impl std::fmt::Display for Measure {
 }
 
 #[derive(Debug, Clone)]
-pub struct Flour {
+pub struct Flour<const MIN: usize = 1, const MAX: usize = 100, const DECIMALS: usize = 0> {
   pub name: String,
-  pub measure: Measure,
+  pub measure: Measure<MIN, MAX, DECIMALS>,
 
   /// Actual weight of flour to insert ( starter flour excluded )
   pub weight: Option<Gram>,
@@ -48,9 +44,9 @@ impl std::fmt::Display for Flour {
   }
 }
 
-impl Flour {
-  pub fn new(name: &str, measure: Measure) -> Self {
-    Self {
+impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> Flour<MIN, MAX,DECIMALS> {
+  pub fn new(name: &str, measure: Measure<MIN, MAX, DECIMALS>) -> Self {
+    Flour {
       name: name.to_string().capitalize(),
       measure,
       weight: None,

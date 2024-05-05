@@ -253,6 +253,12 @@ impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> Sum for Percent<
   }
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum  Measure<const MIN: usize, const MAX: usize, const DECIMALS: usize>  {
+  Weight(Gram),
+  Ratio(Percent<MIN, MAX, DECIMALS>),
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
