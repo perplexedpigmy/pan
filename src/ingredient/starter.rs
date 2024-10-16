@@ -81,13 +81,6 @@ impl Starter {
   ) -> Starter {
     let starter_weight = total_weight * percent_starter;
     Self::set(starter_weight, hydration)
-    // let flour_ratio = 1.0 / hydration; // The flour ratio for each 1 unit of water
-    // let portion = starter_weight / (flour_ratio + 1.0);
-
-    // let flour = portion * flour_ratio;
-    // let water = portion;
-
-    // Starter { flour, water }
   }
 
   pub fn get_hydration(&self) -> StarterHydrationPercentage {

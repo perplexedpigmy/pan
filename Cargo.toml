@@ -1,17 +1,17 @@
 [package]
 name = "pn"
-about = "Sourdough bread recipe generator"
+description = "Bread recipe generator"
 version = "0.1.0"
 edition = "2021"
-author = "perplexedpigmy <perplexedpigmy@xmousse.com>"
+authors = [ "perplexedpigmy <perplexedpigmy@xmousse.com>" ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-lazy_static = "1.4.0"
-clap = { version = "^4.4.5", features = ["cargo", "derive", "unicode", "wrap_help"]}
+lazy_static = "1.5.0"
+clap = { version = "^4.5.20", features = ["cargo", "derive", "unicode", "wrap_help"]}
 simple-eyre = "^0.3"
 capitalize = "0.1.0"
-colored = "2.0.4"
-syn = { version = "2.0.39", features = ["full"] }
+colored = "2.1.0"
+syn = { version = "2.0.79", features = ["full"] }
 

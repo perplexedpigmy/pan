@@ -1,3 +1,8 @@
+pub mod ingredient;
+pub mod recipe;
+mod common;
+mod macros;
+
 use crate::common::Measure;
 use crate::ingredient::flour::Flour;
 use crate::ingredient::flour::FlourMix;
@@ -5,12 +10,9 @@ use crate::ingredient::salt::SaltPercentage;
 use crate::ingredient::starter::StarterHydrationPercentage;
 use crate::ingredient::starter::StarterPercentage;
 use crate::ingredient::water::HydrationPercentage;
-use clap::{arg, command, Parser};
 use crate::recipe::{ Adaptations, ResetStarterWeight, ResetWaterWeight};
-mod common;
-pub mod ingredient;
-pub mod recipe;
-mod macros;
+
+use clap::{arg, command, Parser};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
