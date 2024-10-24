@@ -2,6 +2,7 @@ pub mod ingredient;
 pub mod recipe;
 mod common;
 mod macros;
+mod error;
 
 use crate::common::Measure;
 use crate::ingredient::flour::Flour;

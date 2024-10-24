@@ -29,8 +29,8 @@ static POOLISH_HYDRATION: PoolishHydrationPercentage = Percent(100);
 impl Poolish {
 
   fn set(weight: Gram, hydration: PoolishHydrationPercentage) -> Self {
-    let flour_ratio = 1.0 / hydration; 
-    let portion = weight / (flour_ratio + 1.0);
+    let flour_ratio: PoolishHydrationPercentage = (1usize / hydration.0).into(); 
+    let portion = weight / (flour_ratio + 1.into());
 
     let flour = portion * flour_ratio;
     let water = portion;
@@ -60,7 +60,8 @@ impl Poolish {
   }
 
   pub fn get_hydration(&self) -> PoolishHydrationPercentage {
-    ((self.water.0 / self.flour.0) * 100f32).into()
+    // ((self.water / self.flour) * PERCENT).into()
+    0.into()
   }
 
   pub fn get_flour_weight(&self) -> Gram {
@@ -150,7 +151,7 @@ mod tests {
 
   #[test]
   fn test_() {
-    let poolish = Poolish::new(Gram(200.0));
+    let poolish = Poolish::new(200.into());
     
     assert_eq!(poolish.get_flour_weight(), 100.into()); // Gram
     assert_eq!(poolish.get_water_weight(), 100.into()); // Gram
@@ -160,7 +161,7 @@ mod tests {
 
   #[test]
   fn test_poolish_hydration() {
-    let poolish = Poolish::new(Gram(200.0))
+    let poolish = Poolish::new(200.0.into())
     .with_hydration(80.into());
     println!("{}", poolish);
   }    

@@ -47,7 +47,8 @@ impl Tangzhong {
   } 
 
   pub fn get_hydration(&self) -> TangzhongHydrationPercentage {
-    ((self.water.0 / self.flour.0) * 100f32).into()
+    // ((self.water.0 / self.flour.0) * 100f32).into()
+    0.into()
   }
 
   pub fn get_flour_weight(&self) -> Gram {

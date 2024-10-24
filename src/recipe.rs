@@ -1,12 +1,13 @@
 use crate::common::Gram;
+use crate::Config;
+use crate::replace_element;
+use crate::remove_element;
 use crate::ingredient::{
   ingredient::Ingredient, salt::Salt, salt::SaltPercentage, starter::Starter,
   starter::StarterPercentage, starter::StarterHydrationPercentage, water::HydrationPercentage, water::Water,
 };
-use crate::Config;
+
 use std::fmt::Debug;
-use crate::replace_element;
-use crate::remove_element;
 
 pub trait Adaptation : Debug {
   fn adapt_by_weight(&self, recipe: &mut Recipe) -> simple_eyre::Result<Recipe>;

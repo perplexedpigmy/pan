@@ -43,8 +43,8 @@ impl Starter {
 
   pub fn set(weight: Gram, hydration: StarterHydrationPercentage) -> Starter {
 
-    let flour_ratio = 1.0 / hydration; // The flour ratio for each 1 unit of water
-    let portion = weight / (flour_ratio + 1.0);
+    let flour_ratio: StarterHydrationPercentage = (1usize / hydration.0).into(); // The flour ratio for each 1 unit of water
+    let portion = weight / (flour_ratio + 1.into());
 
     let flour = portion * flour_ratio;
     let water = portion;
@@ -84,7 +84,8 @@ impl Starter {
   }
 
   pub fn get_hydration(&self) -> StarterHydrationPercentage {
-    ((self.water.0 / self.flour.0) * 100f32).into()
+    // ((self.water.0 / self.flour.0) * 100f32).into()
+    0.into()
   }
 
   pub fn get_flour_weight(&self) -> Gram {

@@ -118,7 +118,7 @@ impl FlourMix {
       all_weights,
       "Adding flour by ratio is not possible when flour mix is by weight"
     );
-    assert!(weight.0 > 0.0, "Flour weight must be greater than 0");
+    assert!(*weight > 0.into(), "Flour weight must be greater than 0");
 
     self.total_weight = match self.total_weight {
       Some(tw) => Some(tw + *weight),

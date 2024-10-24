@@ -43,7 +43,7 @@ impl Add<Gram> for Water {
   type Output = Self;
   fn add(self, other: Gram) -> Self {
     Water {
-      weight: self.weight + other.0,
+      weight: self.weight + other,
     }
   }
 }
@@ -121,7 +121,7 @@ mod tests {
   #[test]
   fn test_water_add_gram() {
     let water: Water = 500.into();
-    assert_eq!(water + Gram(30.0), 530.into());
+    assert_eq!(water.weight + Gram(30.into()), 530.into());
   }
 
   #[test]

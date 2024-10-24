@@ -1,4 +1,11 @@
-use crate::ingredient::{flour::FlourMix, salt::Salt, starter::Starter, water::Water};
+
+use crate::{/*common::Gram ,*/ ingredient::{flour::FlourMix, salt::Salt, starter::Starter, water::Water}};
+
+
+// trait Ingredient2 {
+//   fn get_water(&self) -> Gram { Gram::ZERO }
+//   fn get_flour(&self) -> Gram { Gram::ZERO }
+// }
 
 #[derive(Debug, Clone)]
 pub enum Ingredient {

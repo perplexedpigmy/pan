@@ -14,4 +14,7 @@ simple-eyre = "^0.3"
 capitalize = "0.1.0"
 colored = "2.1.0"
 syn = { version = "2.0.79", features = ["full"] }
+rust_decimal = "1.36.0"
+rust_decimal_macros = "1.36.0"
+thiserror = "1.0.64"
 
