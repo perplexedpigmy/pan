@@ -1,10 +1,10 @@
+// use pn::recipe::Recipe;
+
 use pn::recipe::Recipe;
 
 fn main() {
-  let recipe = pn::get_args()
-        .and_then(Recipe::craft)
-        .and_then(Recipe::adapt)
-        .unwrap();
-
-  println!("{:#}", recipe);
+  pn::get_args()
+    .and_then(Recipe::build)
+    .and_then(Recipe::display)
+    .unwrap();
 }

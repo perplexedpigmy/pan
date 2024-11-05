@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "type": "lldb",
             "request": "launch",
@@ -20,13 +21,13 @@
                 }
             },
             "args": [
-                "-w", "1100",                      // Total flour weight
+                "-m", "1100",                      // Total flour weight
                 "-f", "white:80",                  // 80% White strong bread flour
                 "-f", "rye:20",                    // 20% rye
                 "-s", "2.5",                       // Salt percentage
                 "-d", "70",                        // Hydration
-                "-p", "23",                        // Starter percentage
-                "--reset-starter-weight", "230"    // Recalculate after setting starter weight  
+                "-p", "starter:23:100",            // Starter 23 % of flour weight, 100% hydration
+                // "--reset-starter-weight", "230"    // Recalculate after setting starter weight  
             ],
             "cwd": "${workspaceFolder}"
         },

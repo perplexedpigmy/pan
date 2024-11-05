@@ -1,31 +1,35 @@
+use prettytable::Table;
 
-use crate::{/*common::Gram ,*/ ingredient::{flour::FlourMix, salt::Salt, starter::Starter, water::Water}};
+use crate::common::mass::*;
 
+use std::fmt::Debug;
 
-// trait Ingredient2 {
-//   fn get_water(&self) -> Gram { Gram::ZERO }
-//   fn get_flour(&self) -> Gram { Gram::ZERO }
-// }
+/// The two most important ingredients of a recipe ar
+/// 1. Flour  - Baker math uses all quantities relative to the total flour content
+/// 2. Liquid - Namely water, as the dough's hydration, plays a centre role in the final result
+///
+/// All the rest of the ingredients are counted as `other`
+pub trait Ingredient: Debug {
+  /// Water mass of the ingredient
+  fn water(&self) -> Gram {
+    Gram::ZERO
+  }
+  // Flour mass of the ingredient
+  fn flour(&self) -> Gram {
+    Gram::ZERO
+  }
 
-#[derive(Debug, Clone)]
-pub enum Ingredient {
-  Water(Water),
-  Flour(FlourMix),
-  Salt(Salt),
-  Starter(Starter),
-}
+  /// The mass of non water/flour(i.e salt, seeds, sugar etc)
+  fn other(&self) -> Gram {
+    Gram::ZERO
+  }
 
-impl std::fmt::Display for Ingredient {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(
-      f,
-      "{}",
-      match self {
-        Ingredient::Water(w) => w.to_string(),
-        Ingredient::Flour(fl) => fl.to_string(),
-        Ingredient::Salt(s) => s.to_string(),
-        Ingredient::Starter(s) => s.to_string(),
-      }
-    )
+  /// The total mass of the Ingridient
+  fn total(&self) -> Gram {
+    self.flour() + self.water() + self.other()
+  }
+
+  fn describe(&self, table: Table, _: Gram) -> Table {
+    table
   }
 }

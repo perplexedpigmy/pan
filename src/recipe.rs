@@ -1,213 +1,169 @@
-use crate::common::Gram;
-use crate::Config;
-use crate::replace_element;
-use crate::remove_element;
-use crate::ingredient::{
-  ingredient::Ingredient, salt::Salt, salt::SaltPercentage, starter::Starter,
-  starter::StarterPercentage, starter::StarterHydrationPercentage, water::HydrationPercentage, water::Water,
-};
-
+use crate::common::mass::*;
+use crate::common::percent::*;
+use crate::ingredient::flour::Flours;
+use crate::ingredient::preferment;
+use crate::ingredient::{Ingredient, Salt, Water};
+use crate::Cli;
+use crate::{Error, Result};
+use prettytable::{format, row, Table};
 use std::fmt::Debug;
+use std::rc::Rc;
 
-pub trait Adaptation : Debug {
-  fn adapt_by_weight(&self, recipe: &mut Recipe) -> simple_eyre::Result<Recipe>;
-}
-pub type Adaptations = Vec<Box<dyn Adaptation>>;
+pub type Hydration = Percent<50, 120, 0>;
 
-#[derive(Debug, Clone)]
-pub struct ResetStarterWeight {
-  pub new_starter_weight: Gram,
-}
-
-impl Adaptation for ResetStarterWeight {
-  fn adapt_by_weight(&self, recipe: &mut Recipe) -> simple_eyre::Result<Recipe> {
-    let starter_hydration = recipe.get_starter().ok_or::<StarterHydrationPercentage>(100.into()).unwrap().get_hydration();
-    recipe.set_starter_weight(self.new_starter_weight.into(), starter_hydration)
-  }
-}
-
-#[derive(Debug, Clone)]
-pub struct ResetWaterWeight {
-  pub new_water_weight: Gram,
-}
-
-impl Adaptation for ResetWaterWeight {
-  fn adapt_by_weight(&self, recipe: &mut Recipe) -> simple_eyre::Result<Recipe> {
-    recipe.set_water_weight(self.new_water_weight.into())
-  }
-}
-
-
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Recipe {
-  total_weight: Gram,
-  hydration_percentage: HydrationPercentage,
-  total_flour_weight: Gram,
-  total_water_weight: Gram,
-  salt_weight: Gram,
-  salt_percentage: SaltPercentage,
-  starter_percentage: StarterPercentage,
+  /// Referece to total flour mass
+  total_mass: Rc<Gram>,
 
-  ingredients: Vec<Ingredient>,
+  /// A list to all ingredients in recipe
+  ingredients: Vec<Box<dyn Ingredient>>,
+
+  /// Required recipe hydration ( Liquid / Total flour mass)
+  hydration: Hydration,
 }
-use colored::*;
 
 impl Recipe {
-
-  // pub fn remove<T,F>(vec: &mut Vec<T>, condition: F)
-  // where
-  //   F: Fn(&T) -> bool,
-  // {
-  //   vec.retain(|i| !condition(i))
-  // }
- 
-  pub fn get_starter(&self) -> Option<&Starter> {
-    for ingredient in &self.ingredients {
-      if let Ingredient::Starter(s) = ingredient {
-        return Some(s);
-      }
-    }
-    None
-  }
-
-  pub fn get_water(&self) -> Option<&Water> {
-    for ingredient in &self.ingredients {
-      if let Ingredient::Water(s) = ingredient {
-        return Some(s);
-      }
-    }
-    None
-  }
-
-
-  pub fn craft_by_ratio(total_flour_weight: &Gram, config: Config) -> simple_eyre::Result<(Self, Adaptations)> {
-    let total_water_weight = *total_flour_weight * config.hydration;
-    let starter = Starter::create(
-      *total_flour_weight + total_water_weight,
-      config.starter_hydration,
-      config.starter_percentage,
-    );
-   let salt_weight = *total_flour_weight * config.salt_percentage;
-   let total_weight = *total_flour_weight + total_water_weight + salt_weight;
-
-    Ok((Recipe {
-      total_weight,
-      salt_weight,
-      salt_percentage: config.salt_percentage,
-      hydration_percentage: config.hydration,
-      total_flour_weight: *total_flour_weight,
-      total_water_weight,
-      starter_percentage: config.starter_percentage,
-      ingredients: vec![
-        Ingredient::Flour(config.flours.apply_starter(&starter)),
-        Ingredient::Water(Water {
-          weight: total_water_weight - starter.get_water_weight()
-        }),
-        Ingredient::Salt(Salt {
-          weight: salt_weight
-        }),
-        Ingredient::Starter(starter),
-      ],
-    }, config.adaptations))
-  }
-
-  fn craft_by_weight(_config: Config) -> simple_eyre::Result<(Self, Adaptations)> {
-    unimplemented!("Recipe composition by weight is not supported!");
-  }
-
-  pub fn adapt(recipe: (Recipe, Adaptations)) -> simple_eyre::Result<Self> {
-    let (recipe, adaptations) = recipe;
-
-    Ok(adaptations.iter().fold( recipe,
-       |r, a|  
-       a.adapt_by_weight(&mut r.clone()).unwrap() ))
-  }
-
-  pub fn craft(config: Config) -> simple_eyre::Result<(Self, Adaptations)> {
-    match config.flours.total_weight {
-      Some(tw) => Self::craft_by_ratio(&tw, config),
-      None => Self::craft_by_weight(config),
+  pub fn new(total_mass: Gram, hydration: Hydration) -> Self {
+    Recipe {
+      total_mass: Rc::new(total_mass),
+      ingredients: vec![],
+      hydration: hydration,
     }
   }
 
-  pub fn recalc(&mut self) -> &mut Self {
+  pub fn other(&self) -> Gram {
+    self
+      .ingredients
+      .iter()
+      .fold(Gram::ZERO, |a, i| a + i.other())
+  }
 
-      let mut total_starter_weight = Gram::ZERO;
-      let mut salt_weight = Gram::ZERO;
-      let mut total_flour_weight = Gram::ZERO;
-      let mut total_water_weight = Gram::ZERO;
+  pub fn total(&self) -> Gram {
+    self
+      .ingredients
+      .iter()
+      .fold(Gram::ZERO, |a, i| a + i.total())
+  }
 
-    for ingredient in &self.ingredients {
-      match ingredient {
-        Ingredient::Starter(s) => {
-          total_starter_weight += s.get_total_weight();
-          total_flour_weight += s.get_flour_weight();
-          total_water_weight += s.get_water_weight();
-        },
-        Ingredient::Salt(s) => {
-          salt_weight += s.weight; 
-        },
-        Ingredient::Flour(f) => {
-          total_flour_weight += f.derive_total_weight()
-        }
-        Ingredient::Water(w) => {
-          total_water_weight += w.weight;
-        },
-      } 
+  pub fn flour(&self) -> Gram {
+    self
+      .ingredients
+      .iter()
+      .fold(Gram::ZERO, |a, i| a + i.flour())
+  }
+
+  /// Returns the total water in recipe
+  pub fn water(&self) -> Gram {
+    self
+      .ingredients
+      .iter()
+      .fold(Gram::ZERO, |a, i| a + i.water())
+  }
+
+  /// The amount of additional water required to achieve the desired hydration
+  ///
+  ///         <Missing water> =  <Total flour mass> x Hydration - <current water content>
+  pub fn missing_water(&self) -> Gram {
+    (*self.total_mass * self.hydration) - self.water()
+  }
+
+  /// If the requested hydration is not reached
+  /// Add appropriate water
+  /// If the hydration is already exceeded do nothing
+  pub fn add_missing_water(&mut self) -> &mut Self {
+    let to_add = self.missing_water();
+    if to_add > Gram::ZERO {
+      self.ingredients.push(Box::new(Water { mass: to_add }));
     }
-      self.salt_weight = salt_weight;
-      self.total_flour_weight = total_flour_weight;
-      self.total_water_weight = total_water_weight;
-      let total_weight_excluding_salt = total_flour_weight + total_water_weight;
-      self.total_weight = total_weight_excluding_salt + salt_weight;
+    self
+  }
 
-      self.salt_percentage = salt_weight.as_ratio_of::<SaltPercentage>(&total_flour_weight);
-      self.hydration_percentage = total_water_weight.as_ratio_of(&total_flour_weight);
-
-      self.starter_percentage = total_starter_weight.as_ratio_of(&total_weight_excluding_salt);
+  pub fn add_salt(&mut self, ratio: Option<f32>) -> &mut Self {
+    if let Some(ratio) = ratio {
       self
+        .ingredients
+        .push(Box::new(Salt::new(&self.total_mass, ratio.into())));
+    }
+    self
   }
 
-  /// To be used when the start weight used was different then the suggested recipe
-  /// This will have impact on the hydration, and flour content but the explicitly added
-  /// flour/water are assumed not to be touched
-  pub fn set_starter_weight(&mut self, weight: Gram, hydration: StarterHydrationPercentage) -> simple_eyre::Result<Self> {
-    let mut recipe = self.clone();
-    let starter = self
-                  .get_starter().unwrap()
-                  .reset(weight, hydration);
-    replace_element!(recipe.ingredients, Ingredient::Starter(_), Ingredient::Starter(starter));
-    Ok(recipe.recalc().to_owned())
+  pub fn extract_flour_desc(desc: &String) -> Result<(String, i32)> {
+    match desc.split_once(':') {
+      Some((name, ratio)) => Ok((name.to_owned(), ratio.parse::<i32>().unwrap())),
+      _ => Err(Error::InvalidFlourArg(desc.to_owned())),
+    }
   }
 
-  pub fn set_water_weight(&mut self, weight: Gram) -> simple_eyre::Result<Self> {
-    let mut recipe = self.clone();
-    let water = self
-              .get_water().unwrap()
-              .reset(weight);
-    replace_element!(recipe.ingredients, Ingredient::Water(_), Ingredient::Water(water));
-    Ok(recipe.recalc().to_owned())
+  pub fn add_flour(&mut self, flours: Vec<String>) -> Result<Flours> {
+    flours.iter().fold(
+      Ok(Flours::new(&self.total_mass)),
+      |acc: Result<Flours>, f| {
+        let (name, ratio) = Self::extract_flour_desc(f)?;
+        Ok(acc?.add_flour(name, ratio.into()))
+      },
+    )
   }
-}
 
+  pub fn add_preferment(&mut self, preferment: Vec<String>, flours: Flours) -> Result<Flours> {
+    preferment.into_iter().fold(Ok(flours), |fs, p| {
+      match preferment::BUILDER.get(&p, &self.total_mass) {
+        Ok(preferment) => {
+          let flours = fs?.repurpose(&*preferment);
+          self.ingredients.push(preferment);
+          flours
+        }
+        _ => Err(Error::InvalidPrefermentArgs(p)),
+      }
+    })
+  }
 
+  pub fn build(cli: Cli) -> Result<Self> {
+    let mut recipe = Recipe::new(cli.mass.unwrap().into(), cli.hydration.unwrap().into());
+    let flours = recipe.add_flour(cli.flour)?;
+    let flours = recipe.add_preferment(cli.preferment, flours)?;
+    recipe.ingredients.push(Box::new(flours));
+    recipe.add_salt(cli.salt_percentage);
+    recipe.add_missing_water();
+    Ok(recipe)
+  }
 
-impl std::fmt::Display for Recipe {
-  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-    writeln!(f, "{}\n Total weight: {}\n Flour: {}\n Water({}): {}\n Salt({}): {}\n\n{}{}{}\n   {}", 
-            "Recipe".bold().underline(),
-            self.total_weight,
-            self.total_flour_weight,
-            self.hydration_percentage,
-            self.total_water_weight,
-            self.salt_percentage,
-            self.salt_weight,
-            "Ingredients: using ".bold().underline(),
-            self.starter_percentage.to_string().bold().underline(),
-            " starter(percentage of all liquids and flours)".bold().underline(),
-            self.ingredients.iter()
-                 .map(|i| i.to_string()).collect::<Vec<String>>()
-                 .join("\n   ")
-        )
+  pub fn display(self) -> Result<()> {
+    let total = self.total();
+    let mut table = Table::new();
+    table.set_format(*format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
+    table.add_row(row![ cbFy =>"#", "", "mass", "%Flour", "%Total", "Comment"]);
+
+    self
+      .ingredients
+      .iter()
+      .fold(table, |t, it| it.describe(t, total))
+      .printstd();
+
+    let real_hydration: Hydration = ((self.water().0 / self.total_mass.0) * PERCENT).into();
+    println!(
+      "{} / {} = {}",
+      self.water(),
+      *self.total_mass,
+      real_hydration
+    );
+
+    let mut table = Table::new();
+    table.set_format(*format::consts::FORMAT_CLEAN);
+
+    println!("PROPERTIES");
+    if real_hydration == self.hydration {
+      table.add_row(row!["", "HYDRATION", r -> real_hydration]);
+    } else {
+      table.add_row(row!["", Fr -> "HYDRATION", rFr -> real_hydration, Fr -> "EXPECTED HYDRATION:", Frr -> self.hydration]);
+    }
+    table.add_row(row!["", "TOTAL FLOUR", r-> self.total_mass ]);
+    table.add_row(row!["", "TOTAL WATER", r-> self.water()]);
+    table.add_row(row!["", "TOTAL ENRICHMENT*", r-> self.other()]);
+    table.add_row(row!["", "TOTAL WEIGHT", r-> total]);
+    table.printstd();
+
+    println!("* Enrichement refers to seeds, sugar, butter, etc. While not conservative salt is also counted here");
+    Ok(())
   }
 }

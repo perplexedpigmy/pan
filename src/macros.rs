@@ -14,8 +14,8 @@ macro_rules! gen_seq_first_elem {
 #[macro_export]
 macro_rules! remove_element {
   ($vec:expr, $pattern:pat) => {
-    $vec.retain(|e| !matches!(e, $pattern)) 
-  }
+    $vec.retain(|e| !matches!(e, $pattern))
+  };
 }
 
 #[macro_export]
@@ -23,5 +23,5 @@ macro_rules! replace_element {
   ($vec:expr, $pattern:pat, $replacement:expr) => {
     remove_element!($vec, $pattern);
     $vec.push($replacement);
-  }
+  };
 }

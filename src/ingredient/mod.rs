@@ -3,7 +3,8 @@ pub mod ingredient;
 pub mod salt;
 pub mod water;
 
-pub mod starter;
-pub mod poolish;
-pub mod tangzhong;
-// yudane, biga, songe
+pub mod preferment;
+
+pub use crate::ingredient::ingredient::Ingredient;
+pub use crate::ingredient::salt::Salt;
+pub use crate::ingredient::water::Water;

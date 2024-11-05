@@ -1,97 +1,105 @@
-pub mod ingredient;
-pub mod recipe;
 mod common;
-mod macros;
 mod error;
+mod ingredient;
 
-use crate::common::Measure;
-use crate::ingredient::flour::Flour;
-use crate::ingredient::flour::FlourMix;
-use crate::ingredient::salt::SaltPercentage;
-use crate::ingredient::starter::StarterHydrationPercentage;
-use crate::ingredient::starter::StarterPercentage;
-use crate::ingredient::water::HydrationPercentage;
-use crate::recipe::{ Adaptations, ResetStarterWeight, ResetWaterWeight};
+mod macros;
+pub mod recipe;
 
-use clap::{arg, command, Parser};
+use crate::error::{Error, Result};
+use clap::Parser;
+
+// pub type Hydration = Percent<50, 120, 0>;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
-struct Cli {
-  #[arg(short, long, value_name = "WEIGHT", default_value = "600")]
-  weight: Option<i32>,
+pub struct Cli {
+  #[arg(
+    short,
+    long,
+    value_name = "MASS",
+    default_value = "600",
+    help = "Total flour mass in gram. Default: 600"
+  )]
+  mass: Option<i32>,
 
   #[arg(short = 'd', long, value_name = "HYDRATION", default_value = "70")]
   hydration: Option<i32>,
 
-  #[arg(short , long, action = clap::ArgAction::Append, default_value = "White:100")]
+  #[arg(short , long, action = clap::ArgAction::Append, default_value = "White:100", help="Flour name:Percentage. Default: White:100")]
   flour: Vec<String>,
 
-  #[arg(short = 'y', long, default_value = "100")]
-  starter_hydration: Option<i32>,
-
-  #[arg(short = 'p', long, default_value = "10")]
-  starter_percentage: Option<i32>,
-
-  #[arg(short, long, default_value = "2")]
+  #[arg(
+    short,
+    long,
+    default_value = "2",
+    help = "Salt content as percentage of flour, Default 2%"
+  )]
   salt_percentage: Option<f32>,
 
-  #[arg(long)]
-  reset_starter_weight: Option<f32>,
+  // -- Preferments
+  #[arg(
+    short = 'p',
+    long,
+    action = clap::ArgAction::Append,
+    help = "Preferments to use syntax <name>:<ratio of flour>:<hydration>. Example: starter:10:100. for 100% hydrated sourdough starter as 10% of flour mass"
+  )]
+  preferment: Vec<String>,
+  // -- Transformations
+  // #[arg(long)]
+  // reset_starter_weight: Option<f32>,
 
-  #[arg(long)]
-  reset_water_weight: Option<f32>,
-
+  // #[arg(long)]
+  // reset_water_weight: Option<f32>,
 }
 
-pub struct Config {
-  // Initial recipie attributes
-  pub flours: FlourMix,
-  pub hydration: HydrationPercentage,
-  pub starter_hydration: StarterHydrationPercentage,
-  pub starter_percentage: StarterPercentage,
-  pub salt_percentage: SaltPercentage,
+// #[derive(Debug)]
+// pub struct Recipe {
+//   /// Referece to total flour mass
+//   total_mass: Rc<Gram>,
 
-  pub adaptations: Adaptations,
-}
+//   /// A list to all ingredients in recipe
+//   ingredients: Vec<Box<dyn Ingredient>>,
 
-pub fn get_args() -> simple_eyre::Result<Config> {
-  simple_eyre::install()?;
+//   /// Required recipe hydration ( Liquid / Total flour mass)
+//   hydration: Hydration,
+// }
 
-  let cli = Cli::parse();
-  let mut flours = FlourMix::new(cli.weight.unwrap().into());
-  cli.flour.iter().for_each(|f| {
-    if let Some((name, ratio)) = match f.split_once(':') {
-      Some((f, r)) => Some((f, r.parse::<i32>().unwrap())),
-      _ => None,
-    } {
-      flours.add_flour(Flour::new(name, Measure::Ratio(ratio.into())));
-    } else {
-      panic!("\"{}\" is not a valid flour/ratio syntax.", f);
-    }
-  });
+// impl Recipe {
+//   fn new(total_mass: Gram, hydration: Hydration) -> Self {
+//     Recipe {
+//       total_mass: Rc::new(total_mass),
+//       ingredients: vec![],
+//       hydration: hydration,
+//     }
+//   }
 
-  let hydration = cli.hydration.unwrap().into();
-  let starter_hydration = cli.starter_hydration.unwrap().into();
-  let starter_percentage = cli.starter_percentage.unwrap().into();
-  let salt_percentage = cli.salt_percentage.unwrap().into();
+//   /// Returns the total water in recipe
+//   fn water(&self) -> Gram {
+//     self.ingredients.iter().fold(Gram::ZERO, |a, i|
+//       a + i.water()
+//     )
+//   }
 
-  let mut adaptations: Adaptations = vec![];
-  if let Some(new_starter_weight) = cli.reset_starter_weight {
-    adaptations.push( Box::new( ResetStarterWeight { new_starter_weight: new_starter_weight.into() }));
-  }
+//   /// The amount of additional water required to achieve the desired hydration
+//   ///
+//   ///         <Missing water> =  <Total flour mass> x Hydration - <current water content>
+//   fn missing_water(&self) -> Gram {
+//     (*self.total_mass * self.hydration) - self.water()
+//   }
 
-  if let Some(new_water_weight) = cli.reset_water_weight {
-    adaptations.push( Box::new( ResetWaterWeight { new_water_weight: new_water_weight.into() }));
-  }
+//   /// If the requested hydration is not reached
+//   /// Add appropriate water
+//   /// If the hydration is already exceeded do nothing
+//   fn add_missing_water(&mut self) -> &mut Self{
+//     let to_add = self.missing_water();
+//     if to_add > Gram::ZERO {
+//       self.ingredients.push(Box::new( Water { mass: to_add }));
+//     }
+//     self
+//   }
 
-  Ok(Config {
-    flours,
-    hydration,
-    starter_hydration,
-    starter_percentage,
-    salt_percentage,
-    
-    adaptations,
-  })
+// }
+
+pub fn get_args() -> Result<Cli> {
+  Ok(Cli::parse())
 }

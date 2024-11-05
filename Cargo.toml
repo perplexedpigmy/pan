@@ -17,4 +17,10 @@ syn = { version = "2.0.79", features = ["full"] }
 rust_decimal = "1.36.0"
 rust_decimal_macros = "1.36.0"
 thiserror = "1.0.64"
+num-traits = "0.2.19"
+arbtest = "0.3.1"
+prettytable-rs = "0.10.0"
 
+[dev-dependencies]
+arbtest = "0.3.1"
+rand = "0.8.5"
