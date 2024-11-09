@@ -1,6 +1,6 @@
 use crate::{
   common::Gram,
-  ingredient::{preferment::Starter, Ingredient},
+  ingredient::{preferment::{Starter, Tangzhong}, Ingredient},
   Error, Result,
 };
 use lazy_static::lazy_static;
@@ -36,12 +36,10 @@ impl Builder {
 }
 
 lazy_static! {
-  pub static ref BUILDER: Builder = Builder::new(vec!(("starter".to_owned(), Starter::build)),);
+  pub static ref BUILDER: Builder = Builder::new(
+    vec!(
+      ("starter".to_owned(), Starter::build),
+      ("tangzhong".to_owned(), Tangzhong::build),
+    )
+  );
 }
-
-// pub fn build_preferment(desc: String) -> Result<Box<dyn Preferment>> {
-//   if let Some((id, rest)) = match desc.split_once(':') {
-//   } else {
-//     Err(Error::InvalidPreferment(desc))
-//   }
-// }

@@ -44,6 +44,15 @@ pub struct Cli {
     help = "Preferments to use syntax <name>:<ratio of flour>:<hydration>. Example: starter:10:100. for 100% hydrated sourdough starter as 10% of flour mass"
   )]
   preferment: Vec<String>,
+
+  #[arg(
+    short = 'e',
+    long,
+    action = clap::ArgAction::Append,
+    help = "Any addition to the dough that is not the basics water/flour/salt. Format <name>:<mass> or <name>%<percent of flour>"
+  )]
+  enrichment: Vec<String>,
+
   // -- Transformations
   // #[arg(long)]
   // reset_starter_weight: Option<f32>,
