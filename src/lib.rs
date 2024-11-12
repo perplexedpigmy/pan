@@ -6,12 +6,17 @@ mod macros;
 pub mod recipe;
 
 use crate::error::{Error, Result};
-use clap::Parser;
+use clap::{arg, command, Parser};
+use clap::builder::styling::{AnsiColor as Ansi, Styles};
 
-// pub type Hydration = Percent<50, 120, 0>;
+ const MY_STYLES: Styles = Styles::styled()
+  .header(Ansi::Red.on_default().bold())
+  .usage(Ansi::Red.on_default().bold())
+  .literal(Ansi::Blue.on_default().bold())
+  .placeholder(Ansi::Green.on_default());
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version, about, long_about = None, styles=MY_STYLES)]
 pub struct Cli {
   #[arg(
     short,

@@ -9,7 +9,7 @@ authors = [ "perplexedpigmy <perplexedpigmy@xmousse.com>" ]
 
 [dependencies]
 lazy_static = "1.5.0"
-clap = { version = "^4.5.20", features = ["cargo", "derive", "unicode", "wrap_help"]}
+clap = { version = "^4.5.20", features = ["cargo", "derive", "unicode", "wrap_help", "color"]}
 simple-eyre = "^0.3"
 capitalize = "0.1.0"
 colored = "2.1.0"
