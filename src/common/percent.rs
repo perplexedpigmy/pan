@@ -41,8 +41,8 @@ impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> Percent<MIN, MAX
   /// Returns the Percentage as a decimal number
   /// Example 80% => 0.8
   pub fn as_decimal(&self) -> Decimal {
-    let mult: Decimal = Percent::<MIN, MAX, DECIMALS>::DECIMALS_MULTIPLIER.into();
-    let normalizer = mult * PERCENT;
+    let normalizer: Decimal = Percent::<MIN, MAX, DECIMALS>::DECIMALS_MULTIPLIER.into();
+    let normalizer = normalizer * PERCENT;
     Decimal::from_usize(self.0).unwrap_or(Decimal::ZERO) / normalizer
   }
 
@@ -90,8 +90,9 @@ impl<const MIN: usize, const MAX: usize, const DECIMALS: usize> From<Decimal>
   for Percent<MIN, MAX, DECIMALS>
 {
   fn from(value: Decimal) -> Self {
-    Percent::new(value.to_u64().unwrap() as usize * Self::DECIMALS_MULTIPLIER).unwrap()
-    // TODO: Result
+    Percent::new(
+      (value * Decimal::from_usize(Self::DECIMALS_MULTIPLIER).unwrap()).to_usize().unwrap()
+    ).unwrap()
   }
 }
 

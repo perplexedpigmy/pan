@@ -11,7 +11,7 @@ use rust_decimal::prelude::*;
 use rust_decimal::Decimal;
 
 /// Result of dividing weight by weight yields a percent ratio
-pub type Ratio = Percent<0, 1_000_0000, 0>;
+pub type Ratio = Percent<0, 100_000_000, 2>;
 
 /// A unit of mass
 /// used as the basis for ingridient measurements
@@ -287,4 +287,5 @@ mod tests {
     let weight1: Gram = 41.04.into();
     assert_eq!(weight1 / 3.6, 11.4.into());
   }
+
 }

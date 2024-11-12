@@ -1,6 +1,7 @@
 use super::ingredient::Ingredient;
 use crate::common::mass::*;
 use prettytable::{row, Table};
+use rust_decimal::Decimal;
 use std::{ops::Mul, rc::Rc};
 
 #[derive(Debug, Clone)]
@@ -12,7 +13,7 @@ pub struct Enrichment<P> {
 
 impl<P> Enrichment<P> 
 where 
-  P: From<usize>
+  P: From<usize> + std::fmt::Debug
 {
   pub fn new(name: String, total_mass: &Rc<Gram>, ratio: P) -> Self {
     Enrichment {
@@ -22,9 +23,13 @@ where
     }
   }
 
-  pub fn new_by_mass(name: String, total_mass: &Rc<Gram>, mass: Gram) -> Self {
-    let ratio = **total_mass / mass;
-    let ratio= ratio.0.into();
+  pub fn new_by_mass(name: String, total_mass: &Rc<Gram>, mass: Gram) -> Self 
+  where 
+   P: From<Decimal> + std::fmt::Debug + std::fmt::Display + Clone,
+   Gram: Mul<P, Output=Gram>,
+   {
+    // TODO: Formalize the mass & percent algebra
+    let ratio: P = (mass.0 / total_mass.0 * Decimal::from(100)).into();
     Self::new(name, total_mass, ratio)
   }
 }
@@ -35,7 +40,7 @@ where
   Gram: Mul<P, Output = Gram>,
 {
   fn other(&self) -> Gram {
-    *self.total_mass * self.ratio
+    (*self.total_mass * self.ratio).0.round().into()
   }
 
   fn describe(&self, mut table: Table, total: Gram) -> Table {
