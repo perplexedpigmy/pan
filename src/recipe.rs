@@ -2,7 +2,9 @@ use crate::common::mass::*;
 use crate::common::percent::*;
 use crate::ingredient::flour::Flours;
 use crate::ingredient::preferment;
-use crate::ingredient::{Ingredient, Salt, Water};
+use crate::ingredient::Enrichment;
+use crate::ingredient::SaltPercentage;
+use crate::ingredient::{Ingredient, Water};
 use crate::Cli;
 use crate::{Error, Result};
 use prettytable::{format, row, Table};
@@ -71,7 +73,7 @@ impl Recipe {
   /// If the requested hydration is not reached
   /// Add appropriate water
   /// If the hydration is already exceeded do nothing
-  pub fn add_missing_water(&mut self) -> &mut Self {
+  pub fn add_missing_water(mut self) -> Self {
     let to_add = self.missing_water();
     if to_add > Gram::ZERO {
       self.ingredients.push(Box::new(Water { mass: to_add }));
@@ -79,11 +81,11 @@ impl Recipe {
     self
   }
 
-  pub fn add_salt(&mut self, ratio: Option<f32>) -> &mut Self {
+  pub fn add_generic_enrichment(mut self, name: String, ratio: Option<f32>) -> Self {
     if let Some(ratio) = ratio {
       self
         .ingredients
-        .push(Box::new(Salt::new(&self.total_mass, ratio.into())));
+        .push(Box::new(Enrichment::<SaltPercentage>::new(name, &self.total_mass, ratio.into())));
     }
     self
   }
@@ -105,6 +107,10 @@ impl Recipe {
     )
   }
 
+  pub fn add_salt(self, ratio: Option<f32> ) -> Self {
+    self.add_generic_enrichment("SALT".to_string(), ratio)
+  }
+  
   pub fn add_preferment(&mut self, preferment: Vec<String>, flours: Flours) -> Result<Flours> {
     preferment.into_iter().fold(Ok(flours), |fs, p| {
       match preferment::BUILDER.get(&p, &self.total_mass) {
@@ -118,14 +124,36 @@ impl Recipe {
     })
   }
 
+  pub fn add_enrichment_from_cmd(mut self, desc: &String) -> Result<Self> {
+    if let Some((name, ratio)) = desc.split_once('%') {
+      let ratio: Ratio = ratio.parse::<i32>().unwrap().into();
+      self.ingredients.push(Box::new(Enrichment::<Ratio>::new(name.to_owned(), &self.total_mass, ratio)));
+      Ok(self)
+    } else if let Some((name, mass)) = desc.split_once(':') {
+      let mass: Gram = mass.parse::<i32>().unwrap().into();
+      self.ingredients.push(Box::new(Enrichment::<Ratio>::new_by_mass(name.to_owned(), &self.total_mass, mass)));
+      Ok(self)
+    } else  {
+     Err(Error::InvalidEnrichmentArg(desc.to_owned()))
+    }
+  }
+
+  pub fn add_enrichments(self, enrichments: Vec<String>) -> Result<Self> {
+    enrichments.into_iter().fold( Ok(self), |s, desc| {
+      s?.add_enrichment_from_cmd(&desc)
+    })
+  }
+
   pub fn build(cli: Cli) -> Result<Self> {
     let mut recipe = Recipe::new(cli.mass.unwrap().into(), cli.hydration.unwrap().into());
     let flours = recipe.add_flour(cli.flour)?;
     let flours = recipe.add_preferment(cli.preferment, flours)?;
     recipe.ingredients.push(Box::new(flours));
-    recipe.add_salt(cli.salt_percentage);
-    recipe.add_missing_water();
-    Ok(recipe)
+    
+    Ok(recipe.add_salt(cli.salt_percentage)
+             .add_enrichments(cli.enrichment)?
+             .add_missing_water()
+      )
   }
 
   pub fn display(self) -> Result<()> {

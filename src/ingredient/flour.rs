@@ -148,7 +148,9 @@ impl Flours {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+  use crate::ingredient::preferment::Starter;
+
+use super::*;
   use arbtest::arbtest;
   use rand::Rng;
 

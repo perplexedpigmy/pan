@@ -14,6 +14,8 @@ mod builder;
 ///
 mod preferment;
 mod starter;
+mod tangzhong;
 
 pub use crate::ingredient::preferment::builder::BUILDER;
 pub use crate::ingredient::preferment::starter::Starter;
+pub use crate::ingredient::preferment::tangzhong::Tangzhong;

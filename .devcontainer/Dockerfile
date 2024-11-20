@@ -22,9 +22,10 @@ RUN \
     # Install local cargo tools
     && sudo -i -u $USERNAME echo $CARGO_HOME \
     && sudo -i -u $USERNAME rustup default stable \
-    && for package in cargo-audit cargo-binstall cargo-bundle cargo-deny cargo-expand cargo-llvm-cov cargo-make cargo-mobile cargo-nextest cargo-watch cargo-web cargo-edit; do \
+    && for package in cargo-audit cargo-binstall cargo-bundle cargo-deny cargo-expand cargo-llvm-cov cargo-make cargo-mobile cargo-nextest cargo-watch cargo-web cargo-edit cargo-readme ripgrep; do \
        sudo -i -u $USERNAME cargo install --root $CARGO_HOME $package; \
     done \
+    && sudo -i -u $USERNAME cargo install --root $CARGO_HOME --locked difftastic \
     #
     #  Install bin utility and then use it to install deseriable binaries
     #

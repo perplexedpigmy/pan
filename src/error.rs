@@ -27,4 +27,7 @@ pub enum Error {
 
   #[error("Starter expects <ratio>:<Hydration> Arguments. Got {0}")]
   InvalidStarterArgs(String),
+
+  #[error("Enrichment Arguments syntax is <name>:<mass> or <name>%<ratio>")]
+  InvalidEnrichmentArg(String),
 }
